@@ -1,0 +1,87 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Data files (DO NOT commit actual datasets)
+*.csv
+*.json
+*.txt
+manifests/*.csv
+manifests/*.json
+manifests/*.txt
+!manifests/README.md
+!scripts/requirements.txt
+
+# Model checkpoints
+*.pth
+*.pt
+*.ckpt
+checkpoints/
+outputs/
+
+# Large files
+*.tar
+*.gz
+*.zip
+*.h5
+*.hdf5
+
+# Images
+*.jpg
+*.jpeg
+*.png
+*.JPEG
+*.JPG
+*.PNG
+
+# Visual Layer exports
+vl_exports/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Weights & Biases
+wandb/
+.wandb/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+tmp/
+temp/

@@ -1,0 +1,24 @@
+# Visual Layer Dataset Cleaning Requirements
+# Python 3.8+
+
+# Core dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+pandas>=2.0.0
+pillow>=10.0.0
+
+# Image processing
+imagehash>=4.3.1
+
+# Progress bars
+tqdm>=4.65.0
+
+# Optional but recommended
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# For training (if needed)
+wandb>=0.15.0
+datasets>=2.14.0
+huggingface-hub>=0.16.0
