@@ -135,16 +135,10 @@ This work is part of a 6-week research project studying:
 - Train-test contamination in popular datasets
 - Best practices for dataset quality assurance
 
-## Contact
-
-- **Kushagra**: ImageNet questions
-- **Saeed**: COCO questions
-- **Alec Song**: General project coordination
-- **Guy (Visual Layer)**: Platform technical support
 
 ## License
 
-Educational/Research Use - UCI CS189A Capstone Project
+Educational/Research Use - UCSB CS189A Capstone Project
 
 ---
 
