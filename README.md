@@ -7,11 +7,6 @@ Part of UCSB CS189A Capstone Project on Label Noise and Visual Layer Cleaning
 
 This repository contains tools and workflows for cleaning ImageNet1K dataset using Visual Layer platform, implementing user tagging systems, and detecting train-test leaks.
 
-### Team
-- **Kushagra**: ImageNet1K training, dataset cleaning, leak detection
-- **Saeed**: COCO dataset cleaning
-- **Advisor**: Guy (Visual Layer)
-- **Team Lead**: Alec Song
 
 ## Repository Structure
 
