@@ -1,7 +1,7 @@
 # Visual Layer ImageNet Dataset Cleaning
 **Kushagra's Role: ImageNet1K Training & Dataset Cleaning**
 
-Part of UCI CS189A Capstone Project on Label Noise and Visual Layer Cleaning
+Part of UCSB CS189A Capstone Project on Label Noise and Visual Layer Cleaning
 
 ## Project Overview
 
