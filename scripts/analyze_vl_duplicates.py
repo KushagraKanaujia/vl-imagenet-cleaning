@@ -34,8 +34,15 @@ class VLDuplicateAnalyzer:
         with open(self.vl_json_path, 'r') as f:
             self.duplicates = json.load(f)
 
-        print(f"✓ Loaded {len(self.duplicates)} duplicate clusters")
+        print(f"✓ Loaded {len(self._clusters())} duplicate clusters")
         return self.duplicates
+
+    def _clusters(self):
+        """Return the cluster list, handling both a bare list and a
+        {'clusters': [...]} / {'duplicates': [...]} wrapper."""
+        if isinstance(self.duplicates, dict):
+            return self.duplicates.get('clusters', self.duplicates.get('duplicates', []))
+        return self.duplicates or []
 
     def is_validation_image(self, image_path):
         """
@@ -137,10 +144,7 @@ class VLDuplicateAnalyzer:
         if self.duplicates is None:
             raise ValueError("Must call load_vl_export() first")
 
-        # Handle different possible VL export formats
-        clusters = self.duplicates
-        if isinstance(self.duplicates, dict):
-            clusters = self.duplicates.get('clusters', self.duplicates.get('duplicates', []))
+        clusters = self._clusters()
 
         print(f"\nProcessing {len(clusters)} clusters...")
 
@@ -148,7 +152,10 @@ class VLDuplicateAnalyzer:
             result = self.analyze_cluster_for_leaks(cluster)
 
             if result:
-                if 'leak' in result['leak_type'].lower() or result['leak_type'] in ['same_label', 'different_labels']:
+                # Only clusters that span train AND val are train-test leaks.
+                # ('multi_label_no_leak' contains the substring 'leak', so a
+                # substring check would wrongly count train-only clusters.)
+                if result['leak_type'] in ('same_label', 'different_labels'):
                     self.train_test_leaks.append(result)
                     self.stats['train_test_leaks'] += 1
 
@@ -209,6 +216,7 @@ class VLDuplicateAnalyzer:
         (since they appear in training set)
         """
         output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         val_images_to_remove = set()
 
@@ -228,6 +236,7 @@ class VLDuplicateAnalyzer:
     def generate_multi_label_report(self, output_path):
         """Generate report of multi-label clusters (potential mislabels)"""
         output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         multi_label_rows = []
         for cluster in self.multi_label_clusters:
@@ -262,7 +271,7 @@ class VLDuplicateAnalyzer:
         print("TRAIN-TEST LEAK ANALYSIS SUMMARY")
         print("="*80)
 
-        print(f"\nTotal duplicate clusters analyzed: {len(self.duplicates) if isinstance(self.duplicates, list) else len(self.duplicates.get('clusters', []))}")
+        print(f"\nTotal duplicate clusters analyzed: {len(self._clusters())}")
 
         print(f"\n🚨 TRAIN-TEST LEAKS:")
         print(f"   Total leaks: {self.stats['train_test_leaks']}")

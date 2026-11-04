@@ -76,12 +76,16 @@ class TrainTestLeakDetector:
         """Collect all image paths from train and test directories"""
         print("\nCollecting image paths...")
 
-        # Common image extensions
-        exts = ['*.jpg', '*.jpeg', '*.png', '*.JPEG', '*.JPG', '*.PNG']
+        # Common image extensions (matched case-insensitively, so files are
+        # never collected twice on case-insensitive filesystems like macOS)
+        exts = {'.jpg', '.jpeg', '.png'}
 
-        for ext in exts:
-            self.train_images.extend(list(self.train_dir.rglob(ext)))
-            self.test_images.extend(list(self.test_dir.rglob(ext)))
+        def find_images(root):
+            return sorted(p for p in root.rglob('*')
+                          if p.is_file() and p.suffix.lower() in exts)
+
+        self.train_images = find_images(self.train_dir)
+        self.test_images = find_images(self.test_dir)
 
         print(f"✓ Found {len(self.train_images):,} training images")
         print(f"✓ Found {len(self.test_images):,} test images")
@@ -185,7 +189,7 @@ class TrainTestLeakDetector:
         self.leaks.extend(perceptual_duplicates)
         return perceptual_duplicates
 
-    def detect_semantic_duplicates(self, batch_size=32, threshold=0.95):
+    def detect_semantic_duplicates(self, batch_size=32, threshold=0.95, num_workers=4):
         """
         Method 3: Deep feature similarity using pre-trained ResNet
         Most robust, catches semantically similar images
@@ -221,14 +225,15 @@ class TrainTestLeakDetector:
         print("\nExtracting features for training images...")
         train_dataset = ImageDataset(self.train_images, transform=transform)
         train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                                  shuffle=False, num_workers=4, pin_memory=True)
+                                  shuffle=False, num_workers=num_workers,
+                                  pin_memory=torch.cuda.is_available())
 
         train_features = []
         train_paths = []
         with torch.no_grad():
             for images, paths in tqdm(train_loader, desc="Train features"):
                 images = images.to(device)
-                features = model(images).squeeze()
+                features = model(images).flatten(1)  # (B, 2048), safe for B=1
                 train_features.append(features.cpu().numpy())
                 train_paths.extend(paths)
 
@@ -239,14 +244,15 @@ class TrainTestLeakDetector:
         print("\nExtracting features for test images...")
         test_dataset = ImageDataset(self.test_images, transform=transform)
         test_loader = DataLoader(test_dataset, batch_size=batch_size,
-                                 shuffle=False, num_workers=4, pin_memory=True)
+                                 shuffle=False, num_workers=num_workers,
+                                 pin_memory=torch.cuda.is_available())
 
         test_features = []
         test_paths = []
         with torch.no_grad():
             for images, paths in tqdm(test_loader, desc="Test features"):
                 images = images.to(device)
-                features = model(images).squeeze()
+                features = model(images).flatten(1)  # (B, 2048), safe for B=1
                 test_features.append(features.cpu().numpy())
                 test_paths.extend(paths)
 
@@ -366,6 +372,10 @@ def main():
                         help='Perceptual hash threshold (default: 5)')
     parser.add_argument('--semantic_threshold', type=float, default=0.95,
                         help='Semantic similarity threshold (default: 0.95)')
+    parser.add_argument('--batch_size', type=int, default=32,
+                        help='Batch size for semantic feature extraction (default: 32)')
+    parser.add_argument('--num_workers', type=int, default=4,
+                        help='DataLoader workers for semantic method (default: 4)')
 
     args = parser.parse_args()
 
@@ -383,7 +393,9 @@ def main():
         detector.detect_perceptual_duplicates(threshold=args.phash_threshold)
 
     if 'semantic' in args.methods:
-        detector.detect_semantic_duplicates(threshold=args.semantic_threshold)
+        detector.detect_semantic_duplicates(batch_size=args.batch_size,
+                                            threshold=args.semantic_threshold,
+                                            num_workers=args.num_workers)
 
     # Generate report
     detector.generate_report(args.output)

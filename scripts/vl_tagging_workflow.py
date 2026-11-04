@@ -137,6 +137,7 @@ class VLTaggingWorkflow:
         Useful for manual review with team
         """
         output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         html = """
         <!DOCTYPE html>

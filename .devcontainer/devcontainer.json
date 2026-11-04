@@ -1,0 +1,20 @@
+{
+  // One-click environment for GitHub Codespaces / VS Code Dev Containers.
+  // Base image: https://github.com/devcontainers/images (MIT)
+  "name": "vl-imagenet-cleaning",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "hostRequirements": { "cpus": 2, "memory": "8gb" },
+  // CPU-only PyTorch keeps the install small; a Codespace has no GPU anyway.
+  "postCreateCommand": "pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install --no-cache-dir -r scripts/requirements.txt && bash demo/run_demo.sh",
+  "postAttachCommand": "echo 'Demo outputs are in demo_output/. Re-run with: bash demo/run_demo.sh  (add --semantic for ResNet50)'",
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md", "demo/run_demo.sh"]
+    },
+    "vscode": {
+      "extensions": ["ms-python.python", "mechatroner.rainbow-csv"]
+    }
+  },
+  "forwardPorts": [8000],
+  "portsAttributes": { "8000": { "label": "Review page (python -m http.server)" } }
+}

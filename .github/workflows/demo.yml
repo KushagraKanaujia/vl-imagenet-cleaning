@@ -1,0 +1,33 @@
+name: demo
+
+on:
+  push:
+    branches: [main, showcase]
+  pull_request:
+
+jobs:
+  run-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install (CPU-only torch)
+        run: |
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install numpy pandas pillow imagehash tqdm
+      - name: Run all three tools on the synthetic demo dataset
+        run: bash demo/run_demo.sh
+      - name: Check every planted exact/edited leak was found
+        run: |
+          python - <<'PY'
+          import csv, json
+          planted = json.load(open("demo_data/planted_leaks.json"))
+          rows = list(csv.DictReader(open("demo_output/imagenet1k_leaks.csv")))
+          found = {(r["train_image"].removeprefix("demo_data/"), r["test_image"].removeprefix("demo_data/")) for r in rows}
+          need = [p for p in planted if p["kind"] in ("exact", "near")]
+          missing = [p for p in need if (p["train_image"], p["val_image"]) not in found]
+          assert not missing, missing
+          print(f"ok: {len(need)} planted leaks found, {len(rows)} pairs reported")
+          PY
